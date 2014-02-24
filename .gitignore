@@ -9,3 +9,8 @@ pom.xml
 /.env
 *.log
 .nrepl-port
+
+# Eclipse-specific
+.classpath
+.externalToolBuilders/
+.project
