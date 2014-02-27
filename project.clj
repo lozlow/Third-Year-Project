@@ -9,4 +9,6 @@
   :source-paths ["src" "site_specific"]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [com.datomic/datomic-pro "0.9.4556"]]
-  :immutant {:nrepl-port 4335})
+  :immutant {:nrepl-port 4335
+             :init "dataproc.app/init"}
+  :jvm-opts ^:replace ["-Xmx1g" "-server"])

@@ -1,6 +1,7 @@
-(ns dataproc.db.core)
+(ns dataproc.db.core
+  (require [dataproc.config :as config]
+           [datomic.api :as d]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(def ^:private conn (d/connect (config/get-config :datomic-uri)))
+
+(def ^:private db (d/db conn))
