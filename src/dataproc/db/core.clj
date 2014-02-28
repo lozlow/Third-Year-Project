@@ -1,7 +1,14 @@
 (ns dataproc.db.core
   (require [dataproc.config :as config]
-           [datomic.api :as d]))
+           [datomic.api :as d]
+           [immutant.messaging :as msg]
+           [taoensso.timbre :as log]))
 
-(def ^:private conn (d/connect (config/get-config :datomic-uri)))
+(declare ^:private conn)
+(declare ^:private db)
 
-(def ^:private db (d/db conn))
+; Temporary
+(defn init
+  []
+  (def conn (d/connect (config/get-config :datomic-uri)))
+  (def db (d/db conn)))
