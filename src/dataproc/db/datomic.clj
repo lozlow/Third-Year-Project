@@ -1,4 +1,4 @@
-(ns dataproc.db.core
+(ns dataproc.db.datomic
   (require [dataproc.config :as config]
            [datomic.api :as d]
            [immutant.messaging :as msg]
@@ -10,5 +10,11 @@
 ; Temporary
 (defn init
   []
+  (log/info "Attempting to connect to Datomic database")
   (def conn (d/connect (config/get-config :datomic-uri)))
   (def db (d/db conn)))
+
+(defn get-db
+  "Returns the database"
+  []
+  db)

@@ -1,0 +1,12 @@
+{
+
+	; Database configuration
+	:datomic-uri "datomic:sql://mbrainz?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"
+
+  ; Core configuration
+  :work-queue  {"/queue/dataproc/work/"
+                {:endpoint 'dataproc.services.dbscanner/endpoint :concurrency 5}}
+  :adhoc-queue {"/queue/dataproc/adhoc/" 
+                {:endpoint 'dataproc.services.dbscanner/endpoint :concurrency 5}}
+ 
+}

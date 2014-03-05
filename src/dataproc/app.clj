@@ -2,14 +2,14 @@
   (:require [immutant.daemons :as daemon]
             [dataproc.services.dbscanner :as dbscanner]
             [dataproc.config :as config]
+            [dataproc.messaging.core :as messaging]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.rotor :as rotor]
-            [dataproc.db.core :as db])
+            [dataproc.db.datomic :as dbd])
   (:import  [dataproc.services.dbscanner DBScanner]))
 
 (defn init
   []
-  (daemon/create "dbscanner" (DBScanner.) :singleton true)
   (config/load-config "/app/dataproc/resources/app.config.edn")
   
   (timbre/set-config!
@@ -24,4 +24,7 @@
     [:shared-appender-config :rotor]
     {:path "dataproc.log" :max-size (* 512 1024) :backlog 10})
   
-  (db/init))
+  (dbd/init)
+  (messaging/init)
+  
+  (daemon/create "dbscanner" (DBScanner.) :singleton true))

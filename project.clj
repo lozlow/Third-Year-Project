@@ -14,6 +14,8 @@
                                com.fasterxml.jackson.core/jackson-core
                                com.fasterxml.jackson.core/jackson-databind]]
                  [com.taoensso/timbre "3.0.0"]]
+  :profiles {:dev
+               {:dependencies [[midje "1.6.2"]]}}
   :immutant {:nrepl-port 4335
              :init "dataproc.app/init"}
   :jvm-opts ^:replace ["-Xmx1g" "-server"])
