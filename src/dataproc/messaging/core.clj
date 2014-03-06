@@ -2,7 +2,9 @@
   (:require [dataproc.config :as config]
             [datomic.api :as d]
             [immutant.messaging :as msg]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [clojure.string :as str]
+            [dataproc.util :as util :refer [require-fn]]))
 
 (defn register-listener
   [qt endpoint concurrency]
@@ -10,19 +12,23 @@
 
 (defn start-message-service
   [qt]
-  (msg/start qt :durable true :address-full-message-policy :block))
+  (msg/start qt :durable true))
 
-(defn- register-message-service-from-map
-  [map concurrency]
-  (dorun (map (fn [[key val]]
-                (log/info (str "Starting " key " message service"))
-                (start-message-service key)
-                (register-listener key (unquote val) concurrency)) map)))
+(defn- register-message-service-from-vec
+  "TODO Split this into separate functions"
+  [cfgops]
+  (loop [[{qt :msgserv {:keys [endpoint concurrency]} :params} :as vec] cfgops]
+    (when-not (empty? vec)
+      (log/info "Starting" qt "messaging service")
+      (start-message-service qt)
+      (log/info "Registering listener for" qt ", calling function" endpoint)
+      (register-listener qt (require-fn endpoint) concurrency)
+      (recur (rest vec)))))
   
 
 (defn init
   "Initialisation function"
   []
   (log/info "Initialising messaging services")
-  (register-message-service-from-map (config/get-config :work-queue) (config/get-config :num-work-threads))
-  (register-message-service-from-map (config/get-config :adhoc-queue) (config/get-config :num-adhoc-threads)))
+  (register-message-service-from-vec (config/get-config :work-queue))
+  (register-message-service-from-vec (config/get-config :adhoc-queue)))

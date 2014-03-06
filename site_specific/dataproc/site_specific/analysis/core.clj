@@ -1,6 +1,12 @@
-(ns dataproc.site-specific.analysis.core)
+(ns dataproc.site-specific.analysis.core
+  (:require [datomic.api :as d]
+            [dataproc.db.datomic :as dbd]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(defn endpoint
+  [data]
+  (let [db (dbd/get-db)]
+    (println (apply str (take 5 (d/q '[:find ?title
+                                      :in $ ?a
+                                      :where
+                                      [?t :track/artists ?a]
+                                      [?t :track/name ?title]] db data))))))

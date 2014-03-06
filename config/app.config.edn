@@ -4,9 +4,9 @@
 	:datomic-uri "datomic:sql://mbrainz?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"
 
   ; Core configuration
-  :work-queue  {"/queue/dataproc/work/"
-                {:endpoint 'dataproc.services.dbscanner/endpoint :concurrency 5}}
-  :adhoc-queue {"/queue/dataproc/adhoc/" 
-                {:endpoint 'dataproc.services.dbscanner/endpoint :concurrency 5}}
+  :work-queue  [{:msgserv "/queue/dataproc/work/"
+                 :params {:endpoint "dataproc.site-specific.analysis.core/endpoint" :concurrency 5}}]
+  :adhoc-queue [{:msgserv "/queue/dataproc/adhoc/" 
+                 :params {:endpoint "dataproc.site-specific.analysis.core/endpoint" :concurrency 5}}]
  
 }

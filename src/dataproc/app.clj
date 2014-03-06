@@ -10,7 +10,7 @@
 
 (defn init
   []
-  (config/load-config "/app/dataproc/resources/app.config.edn")
+  (config/load-config "/app/dataproc/config/app.config.edn")
   
   (timbre/set-config!
     [:appenders :rotor]

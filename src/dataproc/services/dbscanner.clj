@@ -11,17 +11,6 @@
 
 (def ^:private dcache (cache/lookup-or-create "dataproc" :persist "/app/dataproc/cache"))
 
-(defn endpoint
-  [data]
-  (let [conn (d/connect (config/get-config :datomic-uri))
-        db (d/db conn)]
-    (println (apply str (take 5 (d/q '[:find ?title
-                                      :in $ ?a
-                                      :where
-                                      [?t :track/artists ?a]
-                                      [?t :track/name ?title]] db data))))))
-
-
 (defrecord DBScanner []
   daemon/Daemon
   (start [_]
@@ -35,7 +24,7 @@
                 (log/debug (str "Publishing to work queue: " (:e (first result))))
                 (msg/publish "/queue/dataproc/work/" (:e (first result)))
                 (cache/put dcache :last-ref (:e (first result)))
-                (Thread/sleep 1000)
+                (Thread/sleep 10000)
                 (recur (rest result))))))
         (recur (inc i))))
   (stop [_] (reset! done true)))
