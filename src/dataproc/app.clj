@@ -27,6 +27,7 @@
   
   (dbd/init)
   (pdb/init)
+  
   (messaging/init)
   
   (daemon/create "dbscanner" (DBScanner.) :singleton true))

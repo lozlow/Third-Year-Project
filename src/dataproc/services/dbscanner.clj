@@ -5,7 +5,9 @@
             [dataproc.db.datomic :as dbd]
             [immutant.messaging :as msg]
             [taoensso.timbre :as log]
-            [immutant.cache :as cache]))
+            [immutant.cache :as cache]
+            [immutant.messaging.hornetq :as hornetq])
+  (:import  [org.hornetq.api.jms.management JMSQueueControl]))
 
 (def ^:private done (atom false))
 
@@ -17,14 +19,14 @@
     (reset! done false)
     (log/info "Initialising cache")
     (loop [i 0]
-        (let [db (dbd/get-db)]
+        (let [db (dbd/get-db)
+              qc (hornetq/destination-controller "/queue/dataproc/work/")]
           (msg/with-connection {}
-            (loop [result (d/seek-datoms db :aevt :artist/name (get dcache :last-ref))]
-              (when-not @done
-                (log/debug (str "Publishing to work queue: " (:e (first result))))
-                (msg/publish "/queue/dataproc/work/" (:e (first result)))
-                (cache/put dcache :last-ref (:e (first result)))
-                (Thread/sleep 10000)
-                (recur (rest result))))))
+            (doseq [result (map :e (take 2000 (d/seek-datoms db :aevt :artist/name (get dcache :last-ref))))]
+                ;(log/debug (str "Publishing to work queue: " result))
+                (msg/publish "/queue/dataproc/work/" result)
+                (cache/swap! dcache :last-ref result)
+                (println (str "Queue length:" (.countMessages qc nil))))))
+        (Thread/sleep 120000)
         (recur (inc i))))
   (stop [_] (reset! done true)))

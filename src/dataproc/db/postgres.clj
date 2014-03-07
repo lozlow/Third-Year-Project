@@ -1,12 +1,8 @@
 (ns dataproc.db.postgres
-  (:require [clojure.java.jdbc :as jdbc]
+  (:require [dataproc.config :as config]
+            [clojure.java.jdbc :as jdbc]
             [taoensso.timbre :as log])
   (:import  [com.mchange.v2.c3p0 ComboPooledDataSource]))
-
-(def db-spec {:classname "org.postgresql.Driver"
-              :subprotocol "postgresql"              :subname "//localhost:5432/datomic"
-              :user "datomic"
-              :password "datomic"})
 
 (defn ^:private pool
   "Reference http://clojure-doc.org/articles/ecosystem/java_jdbc/connection_pooling.html
@@ -24,7 +20,7 @@
                (.setMaxIdleTime (* 3 60 60)))] 
     {:datasource cpds}))
 
-(def ^:private pooled-db (delay (pool db-spec)))
+(def ^:private pooled-db (delay (pool (config/get-config :results-store-uri))))
 
 (defn db-connection [] @pooled-db)
 
@@ -35,6 +31,5 @@
 (defn init
   []
   (log/info "Initialising PostgreSQL database tables")
-  ; (create-results-table)) <== Temporarily disable this until migrated to 9.1 on debian
-  )
+  (create-results-table))
     

@@ -2,6 +2,7 @@
   (:require [dataproc.config :as config]
             [datomic.api :as d]
             [immutant.messaging :as msg]
+            [immutant.messaging.hornetq :as hornetq]
             [taoensso.timbre :as log]
             [clojure.string :as str]
             [dataproc.util :as util :refer [require-fn]]))
@@ -12,7 +13,7 @@
 
 (defn start-message-service
   [qt]
-  (msg/start qt :durable true))
+  (msg/start qt :durable false)) ; Temporary - should be true in production
 
 (defn- register-message-service-from-vec
   "TODO Split this into separate functions"
