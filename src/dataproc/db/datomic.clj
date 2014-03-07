@@ -5,13 +5,13 @@
             [taoensso.timbre :as log]))
 
 (declare ^:private db)
-(declare ^:private conn)
 
 (defn connect-db
   "Connects to the database and returns a database object"
   [uri]
   (let [conn (d/connect uri)]
-    (def db (d/db conn))))
+    (def db (d/db conn))
+    db))
 
 (defn get-db
   "Returns the database, connects if the database is not connected
@@ -23,6 +23,4 @@
 (defn init
   []
   (log/info "Attempting to connect to Datomic database")
-  (def conn (d/connect (config/get-config :datomic-uri)))
-  (def db (d/db conn)))
-  ;(connect-db (config/get-config :datomic-uri)))
+  (connect-db (config/get-config :datomic-uri)))
