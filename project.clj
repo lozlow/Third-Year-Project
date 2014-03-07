@@ -15,7 +15,7 @@
                                com.fasterxml.jackson.core/jackson-databind]]
                  [com.taoensso/timbre "3.0.0"]
                  [org.clojure/java.jdbc "0.3.3"]
-                 [postgresql/postgresql "8.4-702.jdbc4"]
+                 [postgresql/postgresql "9.1-901.jdbc4"]
                  [com.mchange/c3p0 "0.9.2.1"]]
   :profiles {:dev
                {:dependencies [[midje "1.6.2"]]}}
