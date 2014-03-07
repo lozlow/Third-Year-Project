@@ -1,7 +1,7 @@
 (ns dataproc.t-core
-  (:use midje.sweet)
   (:require [dataproc.app :refer :all]
-             [clojure.string :as str]))
+            [clojure.string :as str])
+  (:use     [midje.sweet]))
 
 (fact "`split` splits strings on regular expressions and returns a vector"
   (str/split "a/b/c" #"/") => ["a" "b" "c"]

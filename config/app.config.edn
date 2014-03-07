@@ -2,7 +2,13 @@
 
 	; Database configuration
 	:datomic-uri "datomic:sql://mbrainz?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"
-
+  
+  :results-store {:classname "org.postgresql.Driver"
+                  :subprotocol "postgresql"
+                  :subname "//localhost:5432/datomic"
+                  :user "datomic"
+                  :password "datomic"}
+  
   ; Core configuration
   :work-queue  [{:msgserv "/queue/dataproc/work/"
                  :params {:endpoint "dataproc.site-specific.analysis.core/endpoint" :concurrency 5}}]

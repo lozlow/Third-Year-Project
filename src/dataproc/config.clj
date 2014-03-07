@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [taoensso.timbre :as log])
-  (:import [java.io PushbackReader FileNotFoundException]))
+  (:import  [java.io PushbackReader FileNotFoundException]))
 
 (def ^:private config (atom {}))
 

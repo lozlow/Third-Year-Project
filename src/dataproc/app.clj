@@ -5,6 +5,7 @@
             [dataproc.messaging.core :as messaging]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.rotor :as rotor]
+            [dataproc.db.postgres :as pdb]
             [dataproc.db.datomic :as dbd])
   (:import  [dataproc.services.dbscanner DBScanner]))
 
@@ -25,6 +26,7 @@
     {:path "dataproc.log" :max-size (* 512 1024) :backlog 10})
   
   (dbd/init)
+  (pdb/init)
   (messaging/init)
   
   (daemon/create "dbscanner" (DBScanner.) :singleton true))
