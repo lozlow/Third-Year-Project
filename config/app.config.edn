@@ -5,7 +5,7 @@
   
   :results-store-uri {:classname "org.postgresql.Driver"
                       :subprotocol "postgresql"
-                      :subname "//localhost:5432/dprocrslt"
+                      :subname "//localhost:5432/datomic"
                       :user "datomic"
                       :password "datomic"}
   

@@ -2,11 +2,20 @@
   (:require [datomic.api :as d]
             [dataproc.db.datomic :as dbd]))
 
+(defn is-collab?
+  [^String str]
+  (or (.contains str "feat")))
+
 (defn endpoint
   [data]
-  (let [db (dbd/get-db)]
-    (println (apply str (take 5 (d/q '[:find ?title
-                                      :in $ ?a
-                                      :where
-                                      [?t :track/artists ?a]
-                                      [?t :track/name ?title]] db data))))))
+  (let [db (dbd/get-db)
+        analysis (for [[e artist song] (vec (d/q '[:find ?e ?artist ?title
+                                              :in $ ?e
+                                              :where
+                                              [?t :track/artists ?e]
+                                              [?e :artist/name ?artist]
+                                              [?t :track/name ?title]] db data))
+                       :when (is-collab? song)]
+                   {:e e :artist artist :song song})]
+    (when-not (empty? analysis)
+      (println analysis))))
