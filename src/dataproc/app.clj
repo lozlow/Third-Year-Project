@@ -6,7 +6,7 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.rotor :as rotor]
             [dataproc.db.postgres :as pdb]
-            [dataproc.db.datomic :as dbd])
+            [dataproc.db.datomic :as ddb])
   (:import  [dataproc.services.dbscanner DBScanner]))
 
 (defn init
@@ -25,7 +25,7 @@
     [:shared-appender-config :rotor]
     {:path "dataproc.log" :max-size (* 512 1024) :backlog 10})
   
-  (dbd/init)
+  (ddb/init)
   (pdb/init)
   
   (messaging/init)

@@ -28,6 +28,10 @@
   []
   (jdbc/db-do-commands (db-connection) "CREATE TABLE IF NOT EXISTS dproc_result (ent_id bigint, result text)"))
 
+(defn enter-result
+  [entid result]
+  (jdbc/insert! (db-connection) :dproc_result {:ent_id entid :result (pr-str result)}))
+
 (defn init
   []
   (log/info "Initialising PostgreSQL database tables")

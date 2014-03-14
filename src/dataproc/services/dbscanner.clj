@@ -14,16 +14,21 @@
 
 (defn workFn
   []
-  (let [db (dbd/get-db)]
-          (msg/with-connection {}
-            (doseq [result (map :e (d/seek-datoms db :aevt :artist/name (get dcache :last-ref)))]
-                (log/debug (str "Publishing to work queue: " result))
-                (msg/publish "/queue/dataproc/work/" result)
-                (cache/put dcache :last-ref result)))))
+  (let [db (dbd/get-db)
+       entids (map :e (take 50000 (d/seek-datoms db :aevt :artist/name (get dcache :last-ref))))
+       result (butlast entids)
+       lastid (last result)
+       next (last entids)]
+   (msg/with-connection {}
+     (doseq [entid entids]
+         (log/debug (str "Publishing to work queue: " entid))
+         (msg/publish "/queue/dataproc/work/" entid)
+         (cache/put dcache :last-ref entid)))))
 
 (defrecord DBScanner []
   daemon/Daemon
   (start [_]
+    (log/info "Starting DBScanner")
     (.submit tpool workFn))
   (stop [_]
     (.shutdown tpool)))

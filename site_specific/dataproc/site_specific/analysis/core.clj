@@ -1,6 +1,8 @@
 (ns dataproc.site-specific.analysis.core
   (:require [datomic.api :as d]
-            [dataproc.db.datomic :as dbd]))
+            [dataproc.db.datomic :as ddb]
+            [dataproc.db.postgres :as pdb]
+            [taoensso.timbre :as log]))
 
 (defn is-collab?
   [^String str]
@@ -8,7 +10,7 @@
 
 (defn endpoint
   [data]
-  (let [db (dbd/get-db)
+  (let [db (ddb/get-db)
         analysis (for [[e artist song] (vec (d/q '[:find ?e ?artist ?title
                                               :in $ ?e
                                               :where
@@ -16,6 +18,6 @@
                                               [?e :artist/name ?artist]
                                               [?t :track/name ?title]] db data))
                        :when (is-collab? song)]
-                   {:e e :artist artist :song song})]
+                   {:artist artist :song song})]
     (when-not (empty? analysis)
-      (println analysis))))
+      (pdb/enter-result data analysis))))
