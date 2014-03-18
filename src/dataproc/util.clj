@@ -10,3 +10,8 @@
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
     (require namespace)
     (intern namespace function)))
+
+(defn gen-uuid
+  "Generates a new UUID"
+  []
+  (str (java.util.UUID/randomUUID)))
