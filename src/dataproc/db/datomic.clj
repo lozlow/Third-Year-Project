@@ -7,6 +7,8 @@
 (declare ^:private db)
 
 (defn index-datoms
+  "Returns the index for a given attribute, optionally starting from a
+   given entity id"
   ([attribute]
     (d/seek-datoms db :aevt attribute))
   ([attribute start-eid]
