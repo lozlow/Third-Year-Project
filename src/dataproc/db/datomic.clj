@@ -6,6 +6,12 @@
 
 (declare ^:private db)
 
+(defn index-datoms
+  ([attribute]
+    (d/seek-datoms db :aevt attribute))
+  ([attribute start-eid]
+    (d/seek-datoms db :aevt attribute start-eid)))
+
 (defn connect-db
   "Connects to the database and returns a database object"
   [uri]
