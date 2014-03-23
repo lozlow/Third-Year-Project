@@ -28,17 +28,18 @@
 (defn workFn
   [params]
   (let [{:keys [id last-ref end-ref]} params
+        {:keys [msgserv]} (config/get-config :work-queue)
        entids (take-while (partial not= end-ref) (map :e (ddb/index-datoms (config/get-config :dbscanner-scan-index) last-ref)))]
     (msg/with-connection {}
       (doseq [entid entids]
-          (msg/publish "/queue/dataproc/work/" entid)
+          (msg/publish msgserv entid)
           (ascache/swap! dcache (keyword id) assoc :last-ref entid)))
     (remove-worker-from-cache id)))
 
 (defn- generate-work-params
   "This is NOT thread safe and should ONLY be called on a single thread"
   [start-ref]
-  (let [entids (map :e (take 5000 (ddb/index-datoms :artist/name start-ref)))
+  (let [entids (map :e (take 5000 (ddb/index-datoms (config/get-config :dbscanner-scan-index) start-ref)))
        next (last entids)]
     (ascache/put dcache :next-ref next)
     {:start-ref start-ref
@@ -79,11 +80,12 @@
 
 (defn ^:private stats-fn
   []
-  (while (true? @running)
-    (log/report {:work-msgqueue-size (.countMessages (hornetq/destination-controller "/queue/dataproc/work/") nil)
-                 :running-workers-in-cache (count (active-scanners))
-                 :running-worker-threads-in-pool (.getActiveCount tpool)})
-    (Thread/sleep 10000)))
+  (let [msgcontrol (hornetq/destination-controller (:msgserv (config/get-config :work-queue)))]
+    (while (true? @running)
+      (log/report {:work-msgqueue-size (.countMessages msgcontrol nil)
+                   :running-workers-in-cache (count (active-scanners))
+                   :running-worker-threads-in-pool (.getActiveCount tpool)})
+      (Thread/sleep 10000))))
 
 (defn init
   []

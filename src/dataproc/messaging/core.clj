@@ -15,21 +15,19 @@
   [qt]
   (msg/start qt :durable false)) ; Temporary - should be true in production
 
-(defn- register-message-service-from-vec
+(defn- register-message-service-from-map
   "TODO Split this into separate functions"
   [cfgops]
-  (loop [[{qt :msgserv {:keys [endpoint concurrency]} :params} :as vec] cfgops]
-    (when-not (empty? vec)
-      (log/info "Starting" qt "messaging service")
-      (start-message-service qt)
-      (log/info "Registering listener for" qt ", calling function" endpoint)
-      (register-listener qt (require-fn endpoint) concurrency)
-      (recur (rest vec)))))
+  (let [{qt :msgserv {:keys [endpoint concurrency]} :params} cfgops]
+    (log/info "Starting" qt "messaging service")
+    (start-message-service qt)
+    (log/info "Registering listener for" qt ", calling function" endpoint)
+    (register-listener qt (require-fn endpoint) concurrency)))
   
 
 (defn init
   "Initialisation function"
   []
   (log/info "Initialising messaging services")
-  (register-message-service-from-vec (config/get-config :work-queue))
-  (register-message-service-from-vec (config/get-config :adhoc-queue)))
+  (register-message-service-from-map (config/get-config :work-queue))
+  (register-message-service-from-map (config/get-config :adhoc-queue)))
