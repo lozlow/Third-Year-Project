@@ -6,37 +6,41 @@
             [immutant.messaging :as msg]
             [immutant.messaging.hornetq :as hornetq]
             [taoensso.timbre :as log]
-            [immutant.cache :as cache]
+            [dataproc.cache.core :as cache]
+            [immutant.cache :as ascache]
             [dataproc.util :refer [gen-uuid]])
   (:import  [java.util.concurrent Executors]
             [org.hornetq.api.jms.management JMSQueueControl]))
 
-(def ^:private tpool (Executors/newFixedThreadPool 4))
+(def ^:private running (atom false))
 
-(def ^:private dcache (cache/lookup-or-create "dbscanner" :tx false :persist "/app/dataproc/cache"))
+(def ^:private tpool (Executors/newFixedThreadPool 4))
+(def ^:private num-publish-threads (config/get :dbscanner-publish-threads))
+(declare ^:private dcache)
 
 (defn- remove-worker-from-cache
   "Removes the information for a DBScanner worker from the cache"
   [id]
   (dosync
-    (cache/swap! dcache :scanners disj id)
-    (cache/delete dcache (keyword id))))
+    (ascache/swap! dcache :scanners disj id)
+    (ascache/delete dcache (keyword id))))
 
 (defn workFn
   [params]
   (let [{:keys [id last-ref end-ref]} params
-       entids (map :e (ddb/index-datoms :artist/name last-ref))]
+       entids (take-while (partial not= end-ref) (map :e (ddb/index-datoms (config/get :dbscanner-scan-index) last-ref)))]
     (msg/with-connection {}
-      (doseq [entid (take-while (partial not= end-ref) entids)]
+      (doseq [entid entids]
           (msg/publish "/queue/dataproc/work/" entid)
-          (cache/swap! dcache (keyword id) assoc :last-ref entid)))
+          (ascache/swap! dcache (keyword id) assoc :last-ref entid)))
     (remove-worker-from-cache id)))
 
 (defn- generate-work-params
+  "This is NOT thread safe and should ONLY be called on a single thread"
   [start-ref]
-  (let [entids (map :e (take 10000 (ddb/index-datoms :artist/name start-ref)))
+  (let [entids (map :e (take 5000 (ddb/index-datoms :artist/name start-ref)))
        next (last entids)]
-    (cache/put dcache :next-ref next)
+    (ascache/put dcache :next-ref next)
     {:start-ref start-ref
      :end-ref next
      :last-ref start-ref}))
@@ -55,8 +59,8 @@
   (let [params (generate-work-params (get dcache :next-ref))
         uuid (gen-uuid)]
     (dosync
-      (cache/put dcache (keyword uuid) params)
-      (cache/swap! dcache :scanners conj uuid)
+      (ascache/put dcache (keyword uuid) params)
+      (ascache/swap! dcache :scanners conj uuid)
       #(workFn (assoc params :id uuid)))))
 
 (defn- spawn-scanners
@@ -68,18 +72,30 @@
         (.submit tpool (create-scanner-with-params)))))
 
 (defn- resume-scanners
-  [tpool scanner-params]
-  (for [key scanner-params
-        :let [params (get dcache (keyword key))]]
-    (.submit tpool #(workFn (assoc params :id key)))))
+  [tpool scanner-ids]
+  (doseq [key scanner-ids]
+    (let [params (get dcache (keyword key))]
+      (.submit tpool #(workFn (assoc params :id key))))))
+
+(defn ^:private stats-fn
+  []
+  (while (true? @running)
+    (log/report {:work-msgqueue-size (.countMessages (hornetq/destination-controller "/queue/dataproc/work/") nil)
+                 :running-workers-in-cache (count (active-scanners))
+                 :running-worker-threads-in-pool (.getActiveCount tpool)})
+    (Thread/sleep 10000)))
+
+(defn init
+  []
+  (def dcache (cache/get-cache "dbscanner"))
+  (ascache/put-if-absent dcache :scanners #{}))
 
 (defrecord DBScanner []
   daemon/Daemon
   (start [_]
-    (cache/put-if-absent dcache :scanners #{})
+    (reset! running true)
     (log/info "Starting DBScanner")
-    (let [active-scanners (active-scanners)
-          num-active-scanners (count active-scanners)]
+    (let [num-active-scanners (count (active-scanners))]
       (if (>= num-active-scanners 4)
         (do
           (log/info "Resuming" num-active-scanners "active scanners")
@@ -88,9 +104,13 @@
           (log/info "Resuming" num-active-scanners "active scanners and spawning" (- 4 num-active-scanners) "additional scanners")
           (resume-scanners tpool (:scanners dcache))
           (spawn-scanners tpool (- 4 num-active-scanners)))))
-    (loop []
-      (log/report "Stats:" (.countMessages (hornetq/destination-controller "/queue/dataproc/work/") nil))
-      (Thread/sleep 10000)
-      (recur)))
+    (.start (Thread. stats-fn))
+    (while (true? @running)
+      (let [num-active-scanners (count (active-scanners))]
+        (when (< num-active-scanners 4)
+          (log/info "Spawning" (- 4 num-active-scanners) "additional scanners")
+          (spawn-scanners tpool (- 4 num-active-scanners))))
+      (Thread/sleep 30000)))
   (stop [_]
+    (reset! running false)
     (.shutdown tpool)))

@@ -3,6 +3,7 @@
             [dataproc.services.dbscanner :as dbscanner]
             [dataproc.config :as config]
             [dataproc.messaging.core :as messaging]
+            [dataproc.cache.core :as cache]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.rotor :as rotor]
             [dataproc.db.postgres :as pdb]
@@ -28,6 +29,9 @@
   (ddb/init)
   (pdb/init)
   
+  (cache/init)
   (messaging/init)
+  
+  (dbscanner/init)
   
   (daemon/create "dbscanner" (DBScanner.) :singleton true))

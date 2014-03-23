@@ -7,7 +7,7 @@
 (defn ^:private pool
   "Reference http://clojure-doc.org/articles/ecosystem/java_jdbc/connection_pooling.html
 
-   Also, note for report"
+   Also, note for report on why pool is necessary"
   [spec]
   (let [cpds (doto (ComboPooledDataSource.)
                (.setDriverClass (:classname spec)) 
