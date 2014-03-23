@@ -1,5 +1,6 @@
 (ns dataproc.util
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str])
+  (:use     [immutant.util :only [app-relative]]))
 
 (defn require-fn 
   "Takes a string of the form \"namespace/fn\",
@@ -10,6 +11,14 @@
   (let [[namespace function] (map symbol (str/split namespaced-fn #"/"))]
     (require namespace)
     (intern namespace function)))
+
+(defn app-path
+  ([]
+    (.getPath (app-relative)))
+  ([path]
+    (if (.startsWith path "/")
+      (str (.getPath (app-relative)) path)
+      (str (.getPath (app-relative)) "/" path))))
 
 (defn gen-uuid
   "Generates a new UUID"

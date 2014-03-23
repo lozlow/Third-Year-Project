@@ -7,10 +7,11 @@
 (def ^:private config (atom {}))
 
 (defn- load-defaults
-  "Load's default configuration values"
+  "Loads default configuration values"
   [])
 
 (defn- read-edn
+  "Reference http://stackoverflow.com/questions/7777882/loading-configuration-file-in-clojure-as-data-structure"
   [cfgfile]
   (try
     (with-open [r (io/reader cfgfile)]
@@ -19,7 +20,6 @@
       (log/error (str "Could not load file: " cfgfile)))))
 
 (defn load-config
-  "Reference http://stackoverflow.com/questions/7777882/loading-configuration-file-in-clojure-as-data-structure"
   [cfgfile]
   (reset! config (read-edn cfgfile)))
 
@@ -31,5 +31,5 @@
    the configuration value for that keyword."
   ([]
     (deref config))
-  ([k]
-    (k (deref config))))
+  ([keyword]
+    (get (deref config) keyword)))

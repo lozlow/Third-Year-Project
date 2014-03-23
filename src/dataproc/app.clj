@@ -8,11 +8,12 @@
             [taoensso.timbre.appenders.rotor :as rotor]
             [dataproc.db.postgres :as pdb]
             [dataproc.db.datomic :as ddb])
+  (:use     [dataproc.util])
   (:import  [dataproc.services.dbscanner DBScanner]))
 
 (defn init
   []
-  (config/load-config "/app/dataproc/config/app.config.edn")
+  (config/load-config (app-path "/config/app.config.edn"))
   
   (timbre/set-config!
     [:appenders :rotor]
@@ -24,7 +25,7 @@
   
   (timbre/set-config!
     [:shared-appender-config :rotor]
-    {:path "dataproc.log" :max-size (* 512 1024) :backlog 10})
+    {:path (app-path "/log/dataproc.log") :max-size (* 512 1024) :backlog 10})
   
   (ddb/init)
   (pdb/init)

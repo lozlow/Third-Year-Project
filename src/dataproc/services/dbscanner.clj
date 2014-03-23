@@ -14,8 +14,8 @@
 
 (def ^:private running (atom false))
 
-(def ^:private tpool (Executors/newFixedThreadPool 4))
-(def ^:private num-publish-threads (config/get :dbscanner-publish-threads))
+(declare ^:private num-max-publish-threads)
+(declare ^:private tpool)
 (declare ^:private dcache)
 
 (defn- remove-worker-from-cache
@@ -28,7 +28,7 @@
 (defn workFn
   [params]
   (let [{:keys [id last-ref end-ref]} params
-       entids (take-while (partial not= end-ref) (map :e (ddb/index-datoms (config/get :dbscanner-scan-index) last-ref)))]
+       entids (take-while (partial not= end-ref) (map :e (ddb/index-datoms (config/get-config :dbscanner-scan-index) last-ref)))]
     (msg/with-connection {}
       (doseq [entid entids]
           (msg/publish "/queue/dataproc/work/" entid)
@@ -88,6 +88,8 @@
 (defn init
   []
   (def dcache (cache/get-cache "dbscanner"))
+  (def num-max-publish-threads (config/get-config :dbscanner-publish-threads))
+  (def tpool (Executors/newFixedThreadPool num-max-publish-threads))
   (ascache/put-if-absent dcache :scanners #{}))
 
 (defrecord DBScanner []
@@ -95,21 +97,23 @@
   (start [_]
     (reset! running true)
     (log/info "Starting DBScanner")
-    (let [num-active-scanners (count (active-scanners))]
-      (if (>= num-active-scanners 4)
+    (let [num-active-scanners (count (active-scanners))
+          delta (- num-max-publish-threads num-active-scanners)]
+      (if (>= num-active-scanners num-max-publish-threads)
         (do
           (log/info "Resuming" num-active-scanners "active scanners")
           (resume-scanners tpool (:scanners dcache)))
         (do
-          (log/info "Resuming" num-active-scanners "active scanners and spawning" (- 4 num-active-scanners) "additional scanners")
+          (log/info "Resuming" num-active-scanners "active scanners and spawning" delta "additional scanners")
           (resume-scanners tpool (:scanners dcache))
-          (spawn-scanners tpool (- 4 num-active-scanners)))))
+          (spawn-scanners tpool delta))))
     (.start (Thread. stats-fn))
     (while (true? @running)
-      (let [num-active-scanners (count (active-scanners))]
-        (when (< num-active-scanners 4)
-          (log/info "Spawning" (- 4 num-active-scanners) "additional scanners")
-          (spawn-scanners tpool (- 4 num-active-scanners))))
+      (let [num-active-scanners (count (active-scanners))
+            delta (- num-max-publish-threads num-active-scanners)]
+        (when (< num-active-scanners num-max-publish-threads)
+          (log/info "Spawning" delta "additional scanners")
+          (spawn-scanners tpool delta)))
       (Thread/sleep 30000)))
   (stop [_]
     (reset! running false)
