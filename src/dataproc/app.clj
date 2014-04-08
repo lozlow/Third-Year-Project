@@ -1,6 +1,7 @@
 (ns dataproc.app
   (:require [immutant.daemons :as daemon]
             [dataproc.services.dbscanner :as dbscanner]
+            [dataproc.services.batchrunner :as batchrunner]
             [dataproc.config :as config]
             [dataproc.messaging.core :as messaging]
             [dataproc.cache.core :as cache]
@@ -34,5 +35,6 @@
   (messaging/init)
   
   (dbscanner/init)
+  (batchrunner/init)
   
   (daemon/create "dbscanner" (DBScanner.) :singleton true))
