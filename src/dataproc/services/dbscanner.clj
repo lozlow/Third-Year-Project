@@ -39,7 +39,7 @@
 (defn- generate-work-params
   "This is NOT thread safe and should ONLY be called on a single thread"
   [start-ref]
-  (let [entids (map :e (take 5000 (ddb/index-datoms (config/get-config :dbscanner-scan-index) start-ref)))
+  (let [entids (map :e (take 10000 (ddb/index-datoms (config/get-config :dbscanner-scan-index) start-ref)))
        next (last entids)]
     (ascache/put dcache :next-ref next)
     {:start-ref start-ref
@@ -110,9 +110,9 @@
           (resume-scanners tpool (:scanners dcache))
           (spawn-scanners tpool delta))))
     (.start (Thread. stats-fn))
-    (while (true? @running)
-      (let [num-active-scanners (count (active-scanners))
-            delta (- num-max-publish-threads num-active-scanners)]
+    (while (true? @running) ; Main DBScanner loop
+      (let [num-active-scanners (count (active-scanners)) ; Potential bug here, what happens if node goes down?
+            delta (- num-max-publish-threads num-active-scanners)] ; Need to check the thread pool's size
         (when (< num-active-scanners num-max-publish-threads)
           (log/info "Spawning" delta "additional scanners")
           (spawn-scanners tpool delta)))

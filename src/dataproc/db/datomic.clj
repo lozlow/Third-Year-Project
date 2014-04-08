@@ -22,9 +22,7 @@
     db))
 
 (defn get-db
-  "Returns the database, connects if the database is not connected
-   
-   As such, this is an impure function."
+  "Returns the database"
   []
   db)
 
