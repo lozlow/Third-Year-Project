@@ -10,6 +10,7 @@ pom.xml
 /.lein-*
 /.env
 *.log
+/log
 .nrepl-port
 
 # Eclipse-specific
