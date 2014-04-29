@@ -25,7 +25,7 @@
     (ascache/swap! dcache :scanners disj id)
     (ascache/delete dcache (keyword id))))
 
-(defn workFn
+(defn- workFn
   [params]
   (let [{:keys [id last-ref end-ref]} params
         {:keys [msgserv]} (config/get-config :work-queue)
