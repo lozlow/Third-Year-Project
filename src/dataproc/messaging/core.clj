@@ -4,8 +4,8 @@
             [immutant.messaging :as msg]
             [immutant.messaging.hornetq :as hornetq]
             [taoensso.timbre :as log]
-            [clojure.string :as str]
-            [dataproc.util :as util :refer [require-fn]]))
+            [clojure.string :as str])
+  (:use     [dataproc.util :only [require-fn]]))
 
 (defn register-listener
   [qt endpoint concurrency]

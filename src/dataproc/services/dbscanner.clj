@@ -118,5 +118,6 @@
           (spawn-scanners tpool delta)))
       (Thread/sleep 30000)))
   (stop [_]
+    (log/info "Stopping DBScanner service")
     (reset! running false)
     (.shutdown tpool)))

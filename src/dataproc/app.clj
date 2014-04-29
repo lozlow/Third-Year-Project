@@ -10,7 +10,8 @@
             [dataproc.db.postgres :as pdb]
             [dataproc.db.datomic :as ddb])
   (:use     [dataproc.util])
-  (:import  [dataproc.services.dbscanner DBScanner]))
+  (:import  [dataproc.services.dbscanner DBScanner]
+            [dataproc.services.batchrunner BatchRunner]))
 
 (defn init
   []
@@ -37,4 +38,5 @@
   (dbscanner/init)
   (batchrunner/init)
   
-  (daemon/create "dbscanner" (DBScanner.) :singleton true))
+  (daemon/create "dbscanner" (DBScanner.) :singleton true)
+  (daemon/create "batchrunner" (BatchRunner.) :singleton true))
