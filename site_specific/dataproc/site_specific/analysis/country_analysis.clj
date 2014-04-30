@@ -1,10 +1,12 @@
-(ns dataproc.site-specific.analysis.genre-analysis
+(ns dataproc.site-specific.analysis.country-analysis
   (:require [clojure.string :as str])
-  (:use     [clojure.string :only (lower-case split)]))
+  (:use     [clojure.string :only (lower-case split)]
+            [dataproc.site-specific.db.core]))
 
 ; Pure functions
 
 (defn strip-punctuation
+  "http://stackoverflow.com/questions/18830813/how-can-i-remove-punctuation-from-input-text-in-java"
   [str]
   (str/replace str #"[^a-zA-Z\s]" ""))
 
@@ -33,9 +35,11 @@
 
 ; Impure
 
-(reduce merge-freq
-        (pmap analyse-string
-              '("Hello my name is pete" "so doge" "Hello I wish you know you my name")))
+(defn testfn
+  []
+  (reduce merge-freq
+          (pmap analyse-string
+                (flatten (vec (tracks-for-country "United Kingdom"))))))
 
 ; Run pmap frequencies on datomic query
 ; Run reduce merge-freq

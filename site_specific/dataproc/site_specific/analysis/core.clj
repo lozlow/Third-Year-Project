@@ -6,7 +6,7 @@
 
 (defn is-collab?
   [^String str]
-  (or (.contains str "feat")))
+  (or (.contains (.toLowerCase str) "feat")))
 
 (defn endpoint
   [data]
