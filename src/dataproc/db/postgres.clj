@@ -29,6 +29,7 @@
 (defn db-connection [] @pooled-db)
 
 (defn create-results-table
+  
   []
   (jdbc/db-do-commands (db-connection) "CREATE TABLE IF NOT EXISTS dproc_result (ent_id bigint, result text)"))
 
@@ -37,6 +38,7 @@
   (jdbc/insert! (db-connection) :dproc_result {:ent_id entid :result (pr-str result)}))
 
 (defn shutdown
+  "Shuts down the c3p0 database connection pool gracefully"
   []
   (log/info "Gracefully shutting down c3p0 database connection pool")
   (.close pool-ref))
