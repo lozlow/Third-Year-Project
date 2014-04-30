@@ -99,6 +99,7 @@
   (start [_]
     (reset! running true)
     (log/info "Starting DBScanner")
+    (log/info "Last ref:" (get dcache :next-ref))
     (let [num-active-scanners (count (active-scanners))
           delta (- num-max-publish-threads num-active-scanners)]
       (if (>= num-active-scanners num-max-publish-threads)

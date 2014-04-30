@@ -24,42 +24,43 @@
   ; start-job
   ; add name to :running-batch-list
   ; when it ends remove from :running-batch-list
-(defmacro wrap-job
+(defn wrap-job
   "name - the name of the job
    fnc  - the function to be executed
 
    Returns a function that will be called by the Quartz scheduler.
    If running-batch-list contains the job name, it is currently
-   being executed and so will do nothing. Otherwise is adds the job
-   to the running list, execute the function then remove the job from
+   being executed and so will do nothing. Otherwise it adds the job
+   to the running list, executes the function then removes the job from
    the running list"
   [name fnc]
-  (let [name (keyword name)]
-	  `(fn []
-	     (when-not (contains? (get bcache :running-batch-list) ~name)
-	       (do
-	         (add-job-to-running-list ~name)
-	         (~fnc)
-	         (remove-job-from-running-list ~name))))))
+  (letfn [(func [name fnc] 
+                (fn []
+                  (when-not (contains? (get bcache :running-batch-list) name)
+				                (do
+				                  (add-job-to-running-list name)
+				                  (fnc)
+				                  (remove-job-from-running-list name)))))]
+    (intern *ns* (symbol (str "_" name)) (func (keyword name) fnc))))
 
 (defn schedule-job
   "This could be written much nicer"
   ([name fnc]
-	  (log/info "Scheduling batch query job:" name "to run every 5 minutes")
-	  (q/schedule name (wrap-job name fnc) :every [5 :minutes]))
+    (let [func (require-fn fnc)]
+		  (log/info "Scheduling batch query job:" name "to run" func "every 5 minutes")
+		  (q/schedule name (wrap-job name func) :every [5 :minutes])))
   ([name fnc & args]
-	  (log/info "Scheduling batch query job:" name "to run with args" args) ; Change
-	  (apply (partial q/schedule name (wrap-job name fnc)) args)))
+    (let [func (require-fn fnc)]
+		  (log/info "Scheduling batch query job:" name "to run" func "with args" args) ; Change
+		  (apply (partial q/schedule name (wrap-job name func)) args))))
 
 (defn register-batch
   [name fnc & args]
   ; Note for report - this is so that if the daemon went down, taking the query with it,
   ; they would be in the cache and started when the daemon is started on another node
-  (let [func (symbol fnc)]
-    (require-fn fnc)
-	  (dcache/swap! bcache :batch-list assoc name func)
-	  (println "BATCH-LIST" (get bcache :batch-list))
-	  (apply (partial schedule-job name func) args)))
+  (dcache/swap! bcache :batch-list assoc name fnc)
+  (println "BATCH-LIST" (get bcache :batch-list))
+  (apply (partial schedule-job name fnc) args))
 
 (defn unregister-batch
   [name]
