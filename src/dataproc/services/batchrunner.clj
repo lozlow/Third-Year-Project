@@ -71,8 +71,8 @@
   
 (defn init
   []
-  (def bcache (cache/create-cache "batchrunner"))
-  (dcache/put bcache :batch-list {}))
+  (def bcache (cache/create-cache "batchrunner" :persist nil))
+  (dcache/put-if-absent bcache :batch-list {}))
 
 (defrecord BatchRunner []
   daemon/Daemon

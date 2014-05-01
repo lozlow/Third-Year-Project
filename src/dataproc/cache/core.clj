@@ -7,11 +7,13 @@
 (defn create-cache
   "Wraps around the Immutant create cache function, creating a cache
    if one does not exist, with some project specific options"
-  [name]
+  [name & {:keys [tx locking persist] :or {tx true
+                                           locking :pessimistic
+                                           persist (app-path "/cache")}}]
   (cache/lookup-or-create name
-                          :tx true
-                          :locking :pessimistic
-                          :persist (app-path "/cache")))
+                          :tx tx
+                          :locking locking
+                          :persist persist))
 
 (defn get-cache
   "Simple wrapper around Immutant's lookup function"
