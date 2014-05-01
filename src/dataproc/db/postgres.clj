@@ -2,7 +2,8 @@
   (:require [dataproc.config :as config]
             [clojure.java.jdbc :as jdbc]
             [taoensso.timbre :as log])
-  (:use     [immutant.util :only [at-exit]])
+  (:use     [immutant.util :only [at-exit]]
+            [clojure.string :only [join]])
   (:import  [com.mchange.v2.c3p0 ComboPooledDataSource]))
 
 (def ^:private pool-ref nil)
@@ -28,13 +29,21 @@
 
 (defn db-connection [] @pooled-db)
 
-(defn create-results-table
-  []
-  (jdbc/db-do-commands (db-connection) "CREATE TABLE IF NOT EXISTS dproc_result (ent_id bigint, result text)"))
+(defn gen-create-table-string ; DOESN'T WORK YET
+  [tablename schema]
+  (str "CREATE TABLE IF NOT EXISTS "
+       tablename
+	     " ("
+	     (join "," (map name schema))
+	     ")"))
+
+(defn create-table
+  [tablename schema]
+  (jdbc/db-do-commands (db-connection) tablename))
 
 (defn enter-result
-  [entid result]
-  (jdbc/insert! (db-connection) :dproc_result {:ent_id entid :result (pr-str result)}))
+  [result]
+  (jdbc/insert! (db-connection) :dproc_result result))
 
 (defn shutdown
   []
@@ -44,6 +53,7 @@
 (defn init
   []
   (log/info "Initialising PostgreSQL database tables")
-  (create-results-table)
+  (create-table "CREATE TABLE IF NOT EXISTS dproc_result (ent_id bigint, matched_rules text, info text)" '["ent_id" :bigint "result" :text])
+  (create-table "CREATE TABLE IF NOT EXISTS dproc_batches (batch_name text, result text)" '["ent_id" :bigint "result" :text]) ; THIS SHOULD BE MOVED TO SITE_SPECIFIC THINGY
   (at-exit shutdown))
     
