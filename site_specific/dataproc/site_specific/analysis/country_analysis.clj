@@ -37,7 +37,6 @@
 (defn most-frequent-n [coll n]
   "http://stackoverflow.com/questions/12657566/idiomatic-clojure-way-to-find-most-frequent-items-in-a-seq"
   (->> coll
-    frequencies
     (sort-by val)
     reverse
     (take n)))
