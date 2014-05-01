@@ -1,5 +1,6 @@
 (ns dataproc.site-specific.analysis.country-analysis
-  (:require [clojure.string :as str])
+  (:require [clojure.string :as str]
+            [taoensso.timbre :as log])
   (:use     [clojure.string :only (lower-case split)]
             [dataproc.site-specific.db.core]))
 
@@ -33,13 +34,22 @@
         (recur (conj coll entry) (into {} (rest entries))))
       coll)))
 
+(defn most-frequent-n [coll n]
+  "http://stackoverflow.com/questions/12657566/idiomatic-clojure-way-to-find-most-frequent-items-in-a-seq"
+  (->> coll
+    frequencies
+    (sort-by val)
+    reverse
+    (take n)))
+
 ; Impure
 
-(defn testfn
-  []
-  (reduce merge-freq
-          (pmap analyse-string
-                (flatten (vec (tracks-for-country "United Kingdom"))))))
+(defn top-n-song-words-for-country
+  [n country]
+  (log/info "DEBUG: starting analysis")
+  (log/info (most-frequent-n (reduce merge-freq 
+                                     (pmap analyse-string
+                                           (flatten (vec (tracks-for-country country))))) n)))
 
 ; Run pmap frequencies on datomic query
 ; Run reduce merge-freq

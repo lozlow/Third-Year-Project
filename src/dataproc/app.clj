@@ -8,7 +8,8 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.rotor :as rotor]
             [dataproc.db.postgres :as pdb]
-            [dataproc.db.datomic :as ddb])
+            [dataproc.db.datomic :as ddb]
+            [dataproc.site-specific.core :as sitespecific])
   (:use     [dataproc.util])
   (:import  [dataproc.services.dbscanner DBScanner]
             [dataproc.services.batchrunner BatchRunner]))
@@ -39,4 +40,6 @@
   (batchrunner/init)
   
   (daemon/create "dbscanner" (DBScanner.) :singleton true)
-  (daemon/create "batchrunner" (BatchRunner.) :singleton true))
+  (daemon/create "batchrunner" (BatchRunner.) :singleton true)
+  
+  (sitespecific/init)) ; This should happen before batchrunner starts
