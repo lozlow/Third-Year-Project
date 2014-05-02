@@ -46,6 +46,7 @@
   (jdbc/insert! (db-connection) :dproc_result result))
 
 (defn shutdown
+  "Shuts down the c3p0 database connection pool gracefully"
   []
   (log/info "Gracefully shutting down c3p0 database connection pool")
   (.close pool-ref))

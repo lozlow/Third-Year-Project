@@ -19,7 +19,9 @@
 (declare ^:private dcache)
 
 (defn- remove-worker-from-cache
-  "Removes the information for a DBScanner worker from the cache"
+  "id - The id to be removed
+
+   Removes the information for a DBScanner worker from the cache"
   [id]
   (dosync
     (ascache/swap! dcache :scanners disj id)
@@ -37,7 +39,11 @@
     (remove-worker-from-cache id)))
 
 (defn- generate-work-params
-  "This is NOT thread safe and should ONLY be called on a single thread"
+  "start-ref - The entity id to start from
+   
+   Generates work parameters meant for a workerFn
+
+   This is NOT thread safe and should ONLY be called on a single thread"
   [start-ref]
   (let [entids (map :e (take 10000 (ddb/index-datoms (config/get-config :dbscanner-scan-index) start-ref)))
        next (last entids)]
@@ -56,6 +62,8 @@
       (recur (rest scanners) (assoc result (keyword (first scanners)) (get dcache (keyword (first scanners))))))))
 
 (defn- create-scanner-with-params
+  "Creates a workFn with params, returns it
+   and adds the parameter information to the cache"
   []
   (let [params (generate-work-params (get dcache :next-ref))
         uuid (gen-uuid)]
@@ -65,6 +73,10 @@
       #(workFn (assoc params :id uuid)))))
 
 (defn- spawn-scanners
+  "tpool - the thread pool
+   num - the number of scanners to spawn
+
+   Spawn a scanner with parameters, optionally multiple times"
   ([tpool]
     (let [scanner (create-scanner-with-params)]
     (.submit tpool scanner)))
@@ -73,6 +85,10 @@
         (.submit tpool (create-scanner-with-params)))))
 
 (defn- resume-scanners
+  "tpool - the thread pool
+   scanner-ids - the scanner ids
+
+   Resume scanners by id, adding each to the thread pool"
   [tpool scanner-ids]
   (doseq [key scanner-ids]
     (let [params (get dcache (keyword key))]
@@ -100,6 +116,7 @@
     (reset! running true)
     (log/info "Starting DBScanner")
     (log/info "Last ref:" (get dcache :next-ref))
+    
     (let [num-active-scanners (count (active-scanners))
           delta (- num-max-publish-threads num-active-scanners)]
       (if (>= num-active-scanners num-max-publish-threads)
@@ -110,7 +127,9 @@
           (log/info "Resuming" num-active-scanners "active scanners and spawning" delta "additional scanners")
           (resume-scanners tpool (:scanners dcache))
           (spawn-scanners tpool delta))))
+    
     (.start (Thread. stats-fn))
+    
     (while (true? @running) ; Main DBScanner loop
       (let [num-active-scanners (count (active-scanners)) ; Potential bug here, what happens if node goes down?
             delta (- num-max-publish-threads num-active-scanners)] ; Need to check the thread pool's size
@@ -118,6 +137,7 @@
           (log/info "Spawning" delta "additional scanners")
           (spawn-scanners tpool delta)))
       (Thread/sleep 30000)))
+  
   (stop [_]
     (log/info "Stopping DBScanner service")
     (reset! running false)

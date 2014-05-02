@@ -8,10 +8,18 @@
   (:use     [dataproc.util :only [require-fn]]))
 
 (defn register-listener
+  "qt - The queue or topic name
+   endpoint - The endpoint
+   concurrency - The number of threads to run the endpoint in
+
+   Registers a listener on a queue or topic, with a given concurrency."
   [qt endpoint concurrency]
   (msg/listen qt endpoint :concurrency concurrency))
 
 (defn start-message-service
+  "qt - The queue or topic name
+
+   Starts a messaging queue or topic with require defaults."
   [qt]
   (msg/start qt :durable false)) ; Temporary - should be true in production
 

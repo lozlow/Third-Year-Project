@@ -13,6 +13,9 @@
     (intern namespace function)))
 
 (defn app-path
+  "path - the relative path
+
+   With no input this function returns the path to this application."
   ([]
     (.getPath (app-relative)))
   ([path]
