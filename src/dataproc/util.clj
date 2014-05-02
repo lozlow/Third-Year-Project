@@ -25,9 +25,9 @@
   []
   (str (java.util.UUID/randomUUID)))
 
-(defn mapvals-to-separated-string
-  [map & separator]
-  (->> map
+(defn vecmap-to-separated-string
+  [coll & [separator]]
+  (->> coll
 	  (map name)
 	  (partition 2)
 	  (map (partial str/join " "))
