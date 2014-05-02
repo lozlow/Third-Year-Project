@@ -19,11 +19,15 @@
                 :params {:endpoint "dataproc.site-specific.analysis.core/endpoint" :concurrency 4}}
   
   ; BatchRunner configuration
-  :batches [{:name "top 10 song words for serbia"
-             :fnargs ["dataproc.site-specific.analysis.country-analysis/top-n-song-words-for-country" 10 "Serbia"]
-             :schedule [:every [1 :minute]]}
-            {:name "top 10 song words for united kingdom"
-             :fnargs ["dataproc.site-specific.analysis.country-analysis/top-n-song-words-for-country" 10 "United Kingdom"]
-             :schedule [:every [4 :minutes]]}]
+  :batches [{:name "top-words-serbia"
+             :fnargs ["dataproc.site-specific.db.core/do-batch"
+                      "top 10 song words for serbia"
+                      "dataproc.site-specific.analysis.country-analysis/top-n-song-words-for-country" 10 "Serbia"]
+             :schedule [:every [10 :minutes]]}
+            {:name "top-words-united-kingdom"
+             :fnargs ["dataproc.site-specific.db.core/do-batch"
+                      "top 10 song words for united kingdom"
+                      "dataproc.site-specific.analysis.country-analysis/top-n-song-words-for-country" 10 "United Kingdom"]
+             :schedule [:every [15 :minutes]]}]
  
 }

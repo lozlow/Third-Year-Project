@@ -41,10 +41,6 @@
   [tablename schema]
   (jdbc/db-do-commands (db-connection) (gen-create-table-string tablename schema)))
 
-(defn do-sql
-  [cmd]
-  (jdbc/db-do-commands (db-connection) cmd))
-
 (defn enter-result
   [result]
   (jdbc/insert! (db-connection) :dproc_result result))
