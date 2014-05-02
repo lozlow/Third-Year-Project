@@ -11,7 +11,7 @@
   
   ; DBScanner configuration
   :dbscanner-publish-threads 4
-  :dbscanner-scan-index :artist/name
+  :dbscanner-scan-index :track/name
   
   :work-queue  {:msgserv "/queue/dataproc/work/"
                 :params {:endpoint "dataproc.site-specific.analysis.core/endpoint" :concurrency 4}}
