@@ -24,3 +24,11 @@
   "Generates a new UUID"
   []
   (str (java.util.UUID/randomUUID)))
+
+(defn mapvals-to-separated-string
+  [map & separator]
+  (->> map
+	  (map name)
+	  (partition 2)
+	  (map (partial str/join " "))
+	  (str/join (or separator ", "))))
