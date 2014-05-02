@@ -27,3 +27,11 @@
   "Generates a new UUID"
   []
   (str (java.util.UUID/randomUUID)))
+
+(defn vecmap-to-separated-string
+  [coll & [separator]]
+  (->> coll
+	  (map name)
+	  (partition 2)
+	  (map (partial str/join " "))
+	  (str/join (or separator ", "))))

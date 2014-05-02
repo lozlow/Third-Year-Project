@@ -1,6 +1,5 @@
 (ns dataproc.site-specific.analysis.country-analysis
-  (:require [clojure.string :as str]
-            [taoensso.timbre :as log])
+  (:require [clojure.string :as str])
   (:use     [clojure.string :only (lower-case split)]
             [dataproc.site-specific.db.core]))
 
@@ -45,11 +44,6 @@
 
 (defn top-n-song-words-for-country
   [n country]
-  (log/info "DEBUG: starting analysis")
-  (log/info (most-frequent-n (reduce merge-freq 
-                                     (pmap analyse-string
-                                           (flatten (vec (tracks-for-country country))))) n)))
-
-; Run pmap frequencies on datomic query
-; Run reduce merge-freq
-; Add results to database
+  (most-frequent-n (reduce merge-freq 
+                           (pmap analyse-string
+                                 (flatten (vec (tracks-for-country country))))) n))
