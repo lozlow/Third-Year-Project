@@ -9,7 +9,7 @@
   :source-paths ["src" "site_specific"]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.immutant/immutant "1.1.0"]
-                 [com.datomic/datomic-pro "0.9.4556"
+                 [com.datomic/datomic-pro "0.9.4755"
                   :exclusions [com.fasterxml.jackson.core/jackson-annotations
                                com.fasterxml.jackson.core/jackson-core
                                com.fasterxml.jackson.core/jackson-databind]]

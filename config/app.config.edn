@@ -1,7 +1,7 @@
 {
 
-	; Database configuration
-	:datomic-uri "datomic:sql://mbrainz?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"
+  ; Database configuration
+  :datomic-uri "datomic:sql://mbrainz?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"
   
   :results-store-uri {:classname "org.postgresql.Driver"
                       :subprotocol "postgresql"
