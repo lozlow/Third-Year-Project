@@ -13,5 +13,5 @@
   (split-words "My") => ["My"]
   (split-words "My great song") => ["My" "great" "song"])
 
-(fact "`merge-freq` merges the result of two frequencies maps")
-; Todo tests
+(fact "`merge-freq` merges the result of two frequencies maps"
+  (merge-freq (frequencies '("hello")) (frequencies '("hello"))) => (frequencies '("hello" "hello")))
