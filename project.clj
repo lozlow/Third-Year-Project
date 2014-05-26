@@ -4,8 +4,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
-                                 :username "peeta.shaw@gmail.com"
-                                 :password "39eb876d-aaf2-4343-8fa2-e02e919daaa7"}}
+                                 :username "YOUR-USERNAME"
+                                 :password "YOUR-DOWNLOAD-KEY"}}
   :source-paths ["src" "site_specific"]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.immutant/immutant "1.1.0"]
